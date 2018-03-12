@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Beginner</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.3.0/dist/semantic.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.15/vue.js" integrity="sha256-IcsJXKo1+n6obuiFBhD3osXhOu+0faMJ/4VV+MaWrAE=" crossorigin="anonymous"></script>
+</head>
+<body>
+	<div id="app" style="padding: 5em;">
+		<div class="ui input">
+			<input v-model="search" placeholder="Search..." type="text">
+		</div>
+		<div style="margin: 1em 0;">
+			<span v-if="persons_filtered_currency_sum">
+				Currency total: <label class="ui label">{{ persons_filtered_currency_sum }}</label>
+			</span>
+			<span v-if="search !== ''">
+				Found: <label class="ui label">{{ persons_filtered.length }}</label>
+			</span>
+			<span v-if="error">
+				Error: <label class="ui label">{{ error }}</label>
+			</span>
+		</div>
+		<table class="ui celled table">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Location</th>
+					<th>Currency</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="person in persons_filtered" :key="person.id">
+					<td>{{ person.name }}</td>
+					<td>{{ person.location }}</td>
+					<td>{{ person.currency }}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<script>
+		const vw = new Vue({
+			el: '#app',
+			computed: {
+				persons_filtered () {
+					const { search, persons } = this;
+					const search_lc = search.toLowerCase();
+
+					if (search === '') {
+						return persons;
+					}
+
+					return persons.filter(e => {
+						return e.name.toLowerCase().indexOf(search_lc) !== -1
+							|| e.location.toLowerCase().indexOf(search_lc) !== -1
+							|| e.currency.toString().indexOf(search_lc) !== -1;
+					});
+				},
+				persons_filtered_currency_sum () {
+					return this.persons_filtered.reduce((a, e) => e.currency + a, 0);
+				},
+			},
+			data: {
+				search: '',
+				persons: [],
+				error: null,
+			},
+			created () {
+				fetch('/persons.json')
+					.then(res => res.json())
+					.then(data => this.persons = data)
+					.catch(() => this.error = 'Can\'t fetch data.');
+			},
+		});
+	</script>
+</body>
+</html>
