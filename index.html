@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Beginner</title>
+	<title>Intermediate</title>
 	<meta charset="utf-8">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.3.0/dist/semantic.min.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.15/vue.js" integrity="sha256-IcsJXKo1+n6obuiFBhD3osXhOu+0faMJ/4VV+MaWrAE=" crossorigin="anonymous"></script>
@@ -22,16 +22,24 @@
 				Error: <label class="ui label">{{ error }}</label>
 			</span>
 		</div>
-		<table class="ui celled table">
+		<table class="ui sortable celled table">
 			<thead>
 				<tr>
-					<th>Name</th>
-					<th>Location</th>
-					<th>Currency</th>
+					<th
+						v-for="th in header"
+						v-bind:class="{
+							sorted: sort_field === th.field,
+							[sort_type]: true,
+						}"
+						v-on:click="toggle_sort_field(th.field)"
+						:key="th.field"
+					>
+						{{ th.title }}
+					</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="person in persons_filtered" :key="person.id">
+				<tr v-for="person in persons_filtered_sorted" :key="person.id">
 					<td>{{ person.name }}</td>
 					<td>{{ person.location }}</td>
 					<td>{{ person.currency }}</td>
@@ -58,6 +66,25 @@
 							|| e.currency.toString().indexOf(search_lc) !== -1;
 					});
 				},
+				persons_filtered_sorted () {
+					const { sort_field, sort_type, persons_filtered } = this;
+
+					if (sort_field === null) {
+						return persons_filtered;
+					}
+
+					return [...persons_filtered].sort((a, b) => {
+						if (sort_field === 'currency') {
+							return sort_type === 'ascending' ?
+								a.currency - b.currency :
+								b.currency - a.currency;
+						}
+
+						return sort_type === 'ascending' ?
+							a[sort_field].localeCompare(b[sort_field]) :
+							b[sort_field].localeCompare(a[sort_field]);
+					});
+				},
 				persons_filtered_currency_sum () {
 					return this.persons_filtered.reduce((a, e) => e.currency + a, 0);
 				},
@@ -66,6 +93,30 @@
 				search: '',
 				persons: [],
 				error: null,
+				sort_field: null,
+				sort_type: null,
+				header: [
+					{ title: 'Name', field: 'name'},
+					{ title: 'Location', field: 'location'},
+					{ title: 'Currency', field: 'currency'},
+				],
+			},
+			methods: {
+				toggle_sort_field (field) {
+					if (field !== this.sort_field) {
+						this.sort_field = field;
+						this.sort_type = 'ascending';
+					} else {
+						if (this.sort_type === 'ascending') {
+							this.sort_type = 'descending';
+						} else if (this.sort_type === 'descending') {
+							this.sort_field = null;
+							this.sort_type = null;
+						} else {
+							this.sort_type = 'ascending';
+						}
+					}
+				}
 			},
 			created () {
 				fetch('/persons.json')
