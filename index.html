@@ -40,9 +40,21 @@
 			</thead>
 			<tbody>
 				<tr v-for="person in persons_filtered_sorted" :key="person.id">
-					<td>{{ person.name }}</td>
-					<td>{{ person.location }}</td>
-					<td>{{ person.currency }}</td>
+					<td>
+						<div class="ui transparent fluid input">
+							<input v-model="person.name" />
+						</div>
+					</td>
+					<td>
+						<div class="ui transparent fluid input">
+							<input v-model="person.location" />
+						</div>
+					</td>
+					<td>
+						<div class="ui transparent fluid input">
+							<input type="number" v-model.number="person.currency" />
+						</div>
+					</td>
 				</tr>
 			</tbody>
 		</table>
@@ -86,7 +98,7 @@
 					});
 				},
 				persons_filtered_currency_sum () {
-					return this.persons_filtered.reduce((a, e) => e.currency + a, 0);
+					return this.persons_filtered.reduce((a, e) => e.currency ? e.currency + a : a, 0);
 				},
 			},
 			data: {
